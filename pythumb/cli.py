@@ -100,11 +100,11 @@ def cli():
     args = parser.parse_args()
 
 
-    use_id = Thumbnail._id_re.match(args.input)
-    if use_id:
-        t = Thumbnail(id=args.input)
-    else:
-        t = Thumbnail(args.input)
+    try:
+        use_id = Thumbnail._id_re.match(args.input)
+        t = Thumbnail(id=args.input) if use_id else Thumbnail(args.input)
+    except (InvalidIDError, InvalidURLError):
+        error(f"'{args.input}' is not a valid YouTube video URL or ID")
 
     try:
         t.fetch(
@@ -113,8 +113,6 @@ def cli():
             args.no_fallback,
             args.timeout
         )
-    except (InvalidIDError, InvalidURLError):
-        error(f"'{args.input}' is not a valid YouTube video URL or ID")
     except NotFoundError as e:
         error(e)
 

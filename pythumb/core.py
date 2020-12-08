@@ -34,12 +34,10 @@ class Thumbnail:
     def __init__(self, url: str = None, id: str = None):
         self._url = url
         self._id = id
-
         if self._url is None and self._id is None:
             raise ValueError('Must provide video URL or ID')
-
         self._ext = None
-        self.video_id: str = None
+        self.id: str = self._parse_id() if self._id else self._parse_url()
         self.image: BytesIO = None
 
     def fetch(
@@ -52,9 +50,6 @@ class Thumbnail:
         if self.image:
             return self.image
 
-        if not self.video_id:
-            self.video_id = self._parse_id() if self._id else self._parse_url()
-
         url_template = 'https://i.ytimg.com/{}/{}/{}.{}'
         fmt = self._format[1] if webp else self._format[0]
 
@@ -62,7 +57,7 @@ class Thumbnail:
             if size > size_id:
                 continue
 
-            url = url_template.format(fmt[0], self.video_id, size_name, fmt[1])
+            url = url_template.format(fmt[0], self.id, size_name, fmt[1])
             h = requests.head(url, timeout=timeout)
             if h.ok:
                 r = requests.get(url, timeout=timeout)
@@ -76,7 +71,7 @@ class Thumbnail:
 
         raise NotFoundError(
             "Failed to find thumbnail for video ID "
-            f"'{self.video_id}' with size '{self._size[size]}'"
+            f"'{self.id}' with size '{self._size[size]}'"
         )
 
     def save(
@@ -89,7 +84,7 @@ class Thumbnail:
         if self.image is None:
             raise NotFetchedError('Must fetch before saving')
 
-        file = f'{filename}.{self._ext}' if filename else f'{self.video_id}.{self._ext}'
+        file = f'{filename}.{self._ext}' if filename else f'{self.id}.{self._ext}'
         path = Path(dir)
 
         if mkdir:
