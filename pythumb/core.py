@@ -74,7 +74,9 @@ class Thumbnail:
 
         raise NotFoundError(
             "Failed to find thumbnail for video ID "
-            f"'{self.id}' with size '{self._size[size]}'"
+            f"'{self.id}' with size '{self._size[size]}'",
+            self.id,
+            self._size[size]
         )
 
     def save(
@@ -112,7 +114,7 @@ class Thumbnail:
         url = urlsplit(base_url)
 
         if all(url.netloc != n for n in ('www.youtube.com', 'youtube.com', 'youtu.be')):
-            raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL")
+            raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL", self._url)
 
         id = ''
         if url.path.startswith('/embed/'):
@@ -125,10 +127,10 @@ class Thumbnail:
                 id = query['v'][0][:11]
 
         if not self._id_re.fullmatch(id):
-            raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL")
+            raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL", self._url)
         return id
 
     def _parse_id(self):
         if not self._id_re.fullmatch(self._id):
-            raise InvalidIDError(f"'{self._id}' is not a valid YouTube video ID")
+            raise InvalidIDError(f"'{self._id}' is not a valid YouTube video ID", self._id)
         return self._id
