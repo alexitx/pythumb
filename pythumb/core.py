@@ -1,3 +1,5 @@
+import errno
+import os
 import re
 import requests
 import shutil
@@ -91,11 +93,14 @@ class Thumbnail:
         path = Path(dir)
 
         if mkdir:
-            path.mkdir(parents=True, exist_ok=True)
+            try:
+                path.mkdir(parents=True, exist_ok=True)
+            except FileExistsError:
+                raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
 
         dest = path.joinpath(file)
         if dest.exists() and not overwrite:
-            raise FileExistsError(dest)
+            raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(dest))
 
         with open(dest, 'wb') as f:
             shutil.copyfileobj(self.image, f)

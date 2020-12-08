@@ -12,9 +12,3 @@ class NotFetchedError(ThumbnailError):
 
 class NotFoundError(ThumbnailError):
     pass
-
-class FetchError(ThumbnailError):
-    pass
-
-class SaveError(ThumbnailError):
-    pass
