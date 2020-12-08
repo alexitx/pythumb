@@ -1,5 +1,6 @@
 import argparse
 import os
+import requests.exceptions
 import sys
 from pathlib import Path
 
@@ -137,6 +138,14 @@ def cli():
             "Error: Failed to find thumbnail for video ID "
             f"'{e.args[1]}' with size '{e.args[2]}'"
         )
+    except requests.exceptions.Timeout as e:
+        error('Error: Connection timed out')
+    except requests.exceptions.SSLError as e:
+        error('Error: SSL error')
+    except requests.exceptions.ConnectionError as e:
+        error('Error: Failed to establish connection')
+    except requests.exceptions.RequestException as e:
+        error(exc=e)
 
     print(f'Found thumbnail with size: {t.size}')
 
