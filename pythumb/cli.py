@@ -10,6 +10,7 @@ from .exceptions import (
     NotFetchedError,
     NotFoundError
 )
+from ._version import __version__
 
 
 def cli():
@@ -34,13 +35,28 @@ def cli():
             args_string = self._format_args(action, default)
             return f"{', '.join(action.option_strings)} {args_string}"
 
+    version_parser = argparse.ArgumentParser(add_help=False)
+    version_parser.add_argument(
+        '-v',
+        '--version',
+        help='print the current version and exit',
+        action='store_true'
+    )
+    version_args, remaining_args = version_parser.parse_known_args()
+
+    if version_args.version:
+        print(f'pythumb {__version__}')
+        sys.exit(0)
+
     parser = argparse.ArgumentParser(
+        parents=[version_parser],
         formatter_class=CustomHelpFormatter,
         prog='pythumb',
         usage='%(prog)s [options] <input>'
     )
     args_fetch = parser.add_argument_group('fetch')
     args_save = parser.add_argument_group('save')
+
     parser.add_argument(
         'input',
         help='YouTube video URL or ID'
@@ -99,8 +115,7 @@ def cli():
         action='store_true',
         help='overwrite if the file exists'
     )
-    args = parser.parse_args()
-
+    args = parser.parse_args(remaining_args)
 
     try:
         use_id = Thumbnail._id_re.match(args.input)
