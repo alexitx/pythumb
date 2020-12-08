@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -76,6 +77,7 @@ def cli():
     args_save.add_argument(
         '-d',
         '--dir',
+        default=os.getcwd(),
         metavar='<dir>',
         help='output directory'
     )
