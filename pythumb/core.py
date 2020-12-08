@@ -36,9 +36,11 @@ class Thumbnail:
         self._id = id
         if self._url is None and self._id is None:
             raise ValueError('Must provide video URL or ID')
-        self._ext = None
         self.id: str = self._parse_id() if self._id else self._parse_url()
+        self.size: str = None
+        self.ext: str = None
         self.image: BytesIO = None
+        self.filepath: str = None
 
     def fetch(
         self,
@@ -63,7 +65,8 @@ class Thumbnail:
                 r = requests.get(url, timeout=timeout)
                 if r.ok:
                     self.image = BytesIO(r.content)
-                    self._ext = fmt[1]
+                    self.size = size_name
+                    self.ext = fmt[1]
                     return self.image
 
             if not fallback:
@@ -84,7 +87,7 @@ class Thumbnail:
         if self.image is None:
             raise NotFetchedError('Must fetch before saving')
 
-        file = f'{filename}.{self._ext}' if filename else f'{self.id}.{self._ext}'
+        file = f'{filename}.{self.ext}' if filename else f'{self.id}.{self.ext}'
         path = Path(dir)
 
         if mkdir:
@@ -93,12 +96,15 @@ class Thumbnail:
             except FileExistsError:
                 raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
 
-        dest = path.joinpath(file)
+        dest = path.resolve().joinpath(file)
         if dest.exists() and not overwrite:
             raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(dest))
 
         with open(dest, 'wb') as f:
             shutil.copyfileobj(self.image, f)
+        
+        self.filepath = str(dest)
+        return self.filepath
 
     def _parse_url(self):
         base_url = self._url if self._url.startswith(('http://', 'https://')) else 'https://' + self._url

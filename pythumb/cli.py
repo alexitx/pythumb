@@ -106,6 +106,8 @@ def cli():
     except (InvalidIDError, InvalidURLError):
         error(f"'{args.input}' is not a valid YouTube video URL or ID")
 
+    print(f'Requesting thumbnail for video ID: {t.id}')
+
     try:
         t.fetch(
             args.size,
@@ -115,6 +117,8 @@ def cli():
         )
     except NotFoundError as e:
         error(e)
+
+    print(f'Found thumbnail with size: {t.size}')
 
     try:
         t.save(
@@ -133,6 +137,8 @@ def cli():
         error(f'Permission denied: {e.filename}')
     except OSError as e:
         error(exc=e)
+    
+    print(f'Successfully saved thumbnail to: {t.filepath}')
 
 
 def main():
