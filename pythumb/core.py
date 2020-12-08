@@ -40,7 +40,6 @@ class Thumbnail:
         self.size: str = None
         self.ext: str = None
         self.image: BytesIO = None
-        self.filepath: str = None
 
     def fetch(
         self,
@@ -104,9 +103,8 @@ class Thumbnail:
 
         with open(dest, 'wb') as f:
             shutil.copyfileobj(self.image, f)
-        
-        self.filepath = str(dest)
-        return self.filepath
+
+        return str(dest)
 
     def _parse_url(self):
         base_url = self._url if self._url.startswith(('http://', 'https://')) else 'https://' + self._url

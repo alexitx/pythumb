@@ -141,7 +141,7 @@ def cli():
     print(f'Found thumbnail with size: {t.size}')
 
     try:
-        t.save(
+        dest = t.save(
             args.dir,
             args.filename,
             args.overwrite,
@@ -158,7 +158,7 @@ def cli():
     except OSError as e:
         error(exc=e)
     
-    print(f'Successfully saved thumbnail to: {t.filepath}')
+    print(f'Successfully saved thumbnail to: {dest}')
 
 
 def main():
