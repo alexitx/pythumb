@@ -59,7 +59,7 @@ class Thumbnail:
                 continue
 
             url = url_template.format(fmt[0], self.id, size_name, fmt[1])
-            h = requests.head(url, timeout=timeout)
+            h = requests.head(url, timeout=timeout, allow_redirects=True)
             if h.ok:
                 r = requests.get(url, timeout=timeout)
                 if r.ok:
