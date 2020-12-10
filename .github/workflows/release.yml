@@ -1,0 +1,224 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: 3.9
+
+jobs:
+  prepare:
+    name: Prepare release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: python -m pip install -U pip setuptools
+
+      - name: Get version
+        id: version
+        run: |
+          tag_version="${GITHUB_REF#refs/tags/v}"
+          project_version="$(python setup.py --version)"
+
+          if [ "$tag_version" != "$project_version" ]; then
+            echo "Version mismatch"
+            echo "Tag version: $tag_version"
+            echo "Project version: $project_version"
+            exit 1
+          fi
+
+          echo "::set-output name=version::$tag_version"
+
+      - name: Get changelog
+        id: changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          path: ./CHANGELOG.md
+          version: ${{ steps.version.outputs.version }}
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: ${{ steps.changelog.outputs.changes }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_win:
+    name: Build Windows binaries
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install pyinstaller .
+
+      - name: Build binaries
+        id: build
+        shell: bash
+        run: |
+          release_name="pythumb-${{ needs.prepare.outputs.version }}-win-x64"
+          archive="${release_name}.zip"
+
+          ./scripts/build.sh win
+
+          mkdir -p ./release/${release_name}/
+          cp ./pyinstaller/dist/* ./LICENSE ./NOTICE ./release/${release_name}/
+          cd release/
+
+          7z a -tzip -mx9 ./$archive ./${release_name}/
+          sha256sum ./${archive} > ./${archive}.sha256sum
+
+          echo "::set-output name=archive::$archive"
+
+      - name: Upload binaries
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.archive }}
+          asset_name: ${{ steps.build.outputs.archive }}
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binaries checksum
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.archive }}.sha256sum
+          asset_name: ${{ steps.build.outputs.archive }}.sha256sum
+          asset_content_type: text/plain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_linux:
+    name: Build Linux binaries
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install pyinstaller .
+
+      - name: Build binaries
+        id: build
+        run: |
+          release_name="pythumb-${{ needs.prepare.outputs.version }}-linux-x64"
+          archive="${release_name}.tar.xz"
+
+          chmod +x ./scripts/*.sh
+          ./scripts/build.sh linux
+
+          mkdir -p ./release/${release_name}/
+          cp ./pyinstaller/dist/* ./LICENSE ./NOTICE ./release/${release_name}/
+          cd ./release/
+
+          tar -cf - ./${release_name}/ | xz -zc9 - > ./$archive
+          sha256sum ./${archive} > ./${archive}.sha256sum
+
+          echo "::set-output name=archive::$archive"
+
+      - name: Upload binaries
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.archive }}
+          asset_name: ${{ steps.build.outputs.archive }}
+          asset_content_type: application/x-xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binaries checksum
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.archive }}.sha256sum
+          asset_name: ${{ steps.build.outputs.archive }}.sha256sum
+          asset_content_type: text/plain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build_dist:
+    name: Build Python distribution
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install -r requirements.txt
+
+      - name: Build distribution
+        id: build
+        run: |
+          wheel="pythumb-${{ needs.prepare.outputs.version }}-py3-none-any.whl"
+
+          python setup.py sdist bdist_wheel
+
+          mkdir -p ./release/wheel/
+          cp ./dist/${wheel} ./release/
+          cd ./release/
+
+          sha256sum ./${wheel} > ./${wheel}.sha256sum
+
+          echo "::set-output name=wheel::$wheel"
+      
+      - name: Upload wheel
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.wheel }}
+          asset_name: ${{ steps.build.outputs.wheel }}
+          asset_content_type: application/x-wheel+zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload wheel checksum
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.prepare.outputs.upload_url }}
+          asset_path: ./release/${{ steps.build.outputs.wheel }}.sha256sum
+          asset_name: ${{ steps.build.outputs.wheel }}.sha256sum
+          asset_content_type: text/plain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
