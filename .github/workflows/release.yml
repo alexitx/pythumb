@@ -72,16 +72,37 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install UPX
+        id: upx
+        shell: bash
+        run: |
+          url="https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip"
+          archive_name="upx-3.96-win64"
+          archive="${upx_archive_name}.zip"
+          install_dir="/c/upx"
+
+          mkdir -p $install_dir
+          temp_dir="$(mktemp -d)"
+
+          curl -LSso ${temp_dir}/$archive "$url"
+          unzip -d $temp_dir ${temp_dir}/$archive
+          mv ${temp_dir}/${archive_name}/* $install_dir
+
+          echo "::set-output name=upx_path::$install_dir"
+
       - name: Install dependencies
         shell: bash
         run: |
           python -m pip install -U pip setuptools wheel
           python -m pip install pyinstaller .
 
+
       - name: Build binaries
         id: build
         shell: bash
         run: |
+          PATH="${{ steps.upx.outputs.upx_path }}:$PATH"
+
           release_name="pythumb-${{ needs.prepare.outputs.version }}-win-x64"
           archive="${release_name}.zip"
 
@@ -127,7 +148,24 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
+      - name: Install UPX
+        id: upx
+        run: |
+          url="https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz"
+          archive_name="upx-3.96-amd64_linux"
+          archive="${upx_archive_name}.tar.xz"
+          install_dir=~/.local/lib/upx
+
+          mkdir -p $install_dir
+          temp_dir="$(mktemp -d)"
+
+          curl -LSso ${temp_dir}/$archive "$url"
+          tar -xJf ${temp_dir}/$archive -C $temp_dir
+          mv ${temp_dir}/${archive_name}/* $install_dir
+
+          echo "::set-output name=upx_path::$install_dir"
+
       - name: Install dependencies
         run: |
           python -m pip install -U pip setuptools wheel
@@ -136,6 +174,8 @@ jobs:
       - name: Build binaries
         id: build
         run: |
+          PATH="${{ steps.upx.outputs.upx_path }}:$PATH"
+
           release_name="pythumb-${{ needs.prepare.outputs.version }}-linux-x64"
           archive="${release_name}.tar.xz"
 
@@ -173,7 +213,7 @@ jobs:
 
   build_dist:
     name: Build Python distribution
-    needs: prepare
+    needs: [prepare, build_win, build_linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -182,7 +222,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
       - name: Install dependencies
         run: |
           python -m pip install -U pip setuptools wheel
@@ -202,7 +242,7 @@ jobs:
           sha256sum ./${wheel} > ./${wheel}.sha256sum
 
           echo "::set-output name=wheel::$wheel"
-      
+
       - name: Upload wheel
         uses: actions/upload-release-asset@v1
         with:
@@ -212,7 +252,7 @@ jobs:
           asset_content_type: application/x-wheel+zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Upload wheel checksum
         uses: actions/upload-release-asset@v1
         with:
