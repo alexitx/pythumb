@@ -46,6 +46,11 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Utilities'
     ],
+    entry_points={
+        'console_scripts': [
+            'pythumb = pythumb.cli:main',
+        ],
+    },
     include_package_data=True,
     packages=[
         'pythumb'
