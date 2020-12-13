@@ -108,7 +108,7 @@ jobs:
           ./scripts/build.sh win
 
           mkdir -p ./release/${release_name}/
-          cp ./pyinstaller/dist/* ./LICENSE ./NOTICE ./release/${release_name}/
+          cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
           cd release/
 
           7z a -tzip -mx9 ./$archive ./${release_name}/
@@ -182,7 +182,7 @@ jobs:
           ./scripts/build.sh linux
 
           mkdir -p ./release/${release_name}/
-          cp ./pyinstaller/dist/* ./LICENSE ./NOTICE ./release/${release_name}/
+          cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
           cd ./release/
 
           tar -cf - ./${release_name}/ | xz -zc9 - > ./$archive

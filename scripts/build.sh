@@ -11,7 +11,7 @@ build() {
     echo "Build finished"
 }
 
-pyi_cmd_base="pyinstaller --distpath ./pyinstaller/dist --workpath ./pyinstaller/build --clean"
+pyi_cmd_base="pyinstaller --distpath ./pyi-dist --workpath ./pyi-build --clean"
 pyi_cmd="$pyi_cmd_base"
 
 case "$1" in

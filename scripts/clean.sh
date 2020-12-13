@@ -9,7 +9,8 @@ files=(
     *.egg-info
     "./build/"
     "./dist/"
-    "./pyinstaller/"
+    "./pyi-build/"
+    "./pyi-dist/"
 )
 
 for f in "${files[@]}"; do

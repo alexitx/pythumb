@@ -71,7 +71,7 @@ $ chmod +x ./scripts/build.sh
 $ ./scripts/build.sh <win / linux>
 ```
 
-You can find the executable in `pyinstaller/dist`.
+You can find the executable in `./pyi-dist/`.
 
 ## Usage
 
