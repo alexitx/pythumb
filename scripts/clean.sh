@@ -4,7 +4,6 @@ set -e
 
 base_dir="$(readlink -f "$(dirname "$BASH_SOURCE")/../")"
 cd "$base_dir"
-. scripts/config.sh
 
 files=(
     *.egg-info
