@@ -37,6 +37,7 @@ setup(
         'Operating System :: Unix',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
@@ -49,7 +50,7 @@ setup(
     packages=[
         'pythumb'
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     install_requires=[
         'requests>=2.25.0,<3'
     ]
