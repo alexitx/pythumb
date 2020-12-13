@@ -25,7 +25,7 @@ setup(
         'Issues': 'https://github.com/alexitx/pythumb/issues'
     },
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: End Users/Desktop',
