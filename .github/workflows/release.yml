@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           python -m pip install -U pip setuptools wheel
-          python -m pip install pyinstaller .
+          python -m pip install pyinstaller -r requirements.txt
 
 
       - name: Build binaries
@@ -169,7 +169,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip setuptools wheel
-          python -m pip install pyinstaller .
+          python -m pip install pyinstaller -r requirements.txt
 
       - name: Build binaries
         id: build
