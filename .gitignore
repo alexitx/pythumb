@@ -5,8 +5,10 @@ venv/
 *.egg-info/
 build/
 dist/
-pyinstaller/
+pyi-build/
+pyi-dist/
 upx/
+release/
 
 __pycache__/
 *.py[cod]

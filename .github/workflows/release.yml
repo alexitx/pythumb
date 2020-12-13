@@ -111,7 +111,7 @@ jobs:
           cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
           cd release/
 
-          7z a -tzip -mx9 ./$archive ./${release_name}/
+          7z a -tzip -mx9 ./$archive ${release_name}/
           sha256sum ./${archive} > ./${archive}.sha256sum
 
           echo "::set-output name=archive::$archive"
@@ -185,7 +185,7 @@ jobs:
           cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
           cd ./release/
 
-          tar -cf - ./${release_name}/ | xz -zc9 - > ./$archive
+          tar -cf - ${release_name}/ | xz -zc9 - > ./$archive
           sha256sum ./${archive} > ./${archive}.sha256sum
 
           echo "::set-output name=archive::$archive"
