@@ -243,6 +243,11 @@ jobs:
 
           echo "::set-output name=wheel::$wheel"
 
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
+
       - name: Upload wheel
         uses: actions/upload-release-asset@v1
         with:
