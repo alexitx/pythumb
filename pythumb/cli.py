@@ -175,7 +175,7 @@ def cli():
             error(f'Permission denied: {e.filename}')
         except OSError as e:
             error(f'{type(e).__name__}: {e}')
-        
+
         printl(f'Successfully saved thumbnail to: {dest}')
 
 

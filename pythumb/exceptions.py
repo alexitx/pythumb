@@ -1,14 +1,17 @@
 class ThumbnailError(Exception):
-    pass
+    """Base exception."""
 
 class InvalidIDError(ThumbnailError):
-    pass
+    """The specified ID is not a valid YouTube video ID."""
 
 class InvalidURLError(ThumbnailError):
-    pass
+    """The specified ID is not a valid YouTube video URL."""
 
 class NotFetchedError(ThumbnailError):
-    pass
+    """The thumbnail is not fetched."""
 
 class NotFoundError(ThumbnailError):
-    pass
+    """
+    Thumbnail with the requested size is not found
+    or the video does not exist.
+    """
