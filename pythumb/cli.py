@@ -1,6 +1,7 @@
 import argparse
 import os
 import requests.exceptions
+import shutil
 import sys
 from pathlib import Path
 
@@ -93,7 +94,7 @@ def cli():
         '--dir',
         default=os.getcwd(),
         metavar='<dir>',
-        help='output directory'
+        help="output directory; '-' outputs to stdout"
     )
     args_save.add_argument(
         '-f',
@@ -115,13 +116,18 @@ def cli():
     )
     args = parser.parse_args(remaining_args)
 
+    stdout = True if args.dir == '-' else False
+    def printl(msg):
+        if not stdout:
+            print(msg)
+
     try:
         use_id = Thumbnail._id_re.match(args.input)
         t = Thumbnail(id=args.input) if use_id else Thumbnail(args.input)
     except (InvalidIDError, InvalidURLError):
         error(f"'{args.input}' is not a valid YouTube video URL or ID")
 
-    print(f'Requesting thumbnail for video ID: {t.id}')
+    printl(f'Requesting thumbnail for video ID: {t.id}')
 
     try:
         t.fetch(
@@ -144,27 +150,33 @@ def cli():
     except requests.exceptions.RequestException as e:
         error(f'{type(e).__name__}: {e}')
 
-    print(f'Found thumbnail with size: {t.size}')
+    printl(f'Found thumbnail with size: {t.size}')
 
-    try:
-        dest = t.save(
-            args.dir,
-            args.filename,
-            args.overwrite,
-            args.no_mkdir
-        )
-    except NotADirectoryError as e:
-        error(f'Invalid path: {e.filename}')
-    except FileExistsError as e:
-        error(f'File already exists: {e.filename}')
-    except FileNotFoundError as e:
-        error(f'Specified path does not exist: {e.filename}')
-    except PermissionError as e:
-        error(f'Permission denied: {e.filename}')
-    except OSError as e:
-        error(f'{type(e).__name__}: {e}')
-    
-    print(f'Successfully saved thumbnail to: {dest}')
+    if stdout:
+        try:
+            shutil.copyfileobj(t.image, sys.stdout.buffer)
+        except OSError as e:
+            error(f'{type(e).__name__}: {e}')
+    else:
+        try:
+            dest = t.save(
+                args.dir,
+                args.filename,
+                args.overwrite,
+                args.no_mkdir
+            )
+        except NotADirectoryError as e:
+            error(f'Invalid path: {e.filename}')
+        except FileExistsError as e:
+            error(f'File already exists: {e.filename}')
+        except FileNotFoundError as e:
+            error(f'Specified path does not exist: {e.filename}')
+        except PermissionError as e:
+            error(f'Permission denied: {e.filename}')
+        except OSError as e:
+            error(f'{type(e).__name__}: {e}')
+        
+        printl(f'Successfully saved thumbnail to: {dest}')
 
 
 def main():
