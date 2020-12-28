@@ -18,8 +18,8 @@ from ._version import __version__
 def cli():
 
     def error(msg, prefix=True):
-        pfx = 'Error: ' if prefix else ''
-        print(pfx + msg)
+        pfx = 'ERROR: ' if prefix else ''
+        print(pfx + msg, file=sys.stderr)
         sys.exit(1)
 
     class CustomHelpFormatter(argparse.HelpFormatter):
