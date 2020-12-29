@@ -81,7 +81,7 @@ def cli():
         type=float,
         default=5.0,
         metavar='<timeout>',
-        help='initial connection timeout in seconds; default: %(default)s'
+        help='server response timeout in seconds; default: %(default)s'
     )
     args_fetch.add_argument(
         '-w',
