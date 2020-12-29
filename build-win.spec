@@ -34,6 +34,7 @@ exe = EXE(
     strip=False,
     upx=True,
     upx_exclude=[
+        'python36.dll',
         'python37.dll',
         'python38.dll',
         'python39.dll',
