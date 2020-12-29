@@ -86,7 +86,7 @@ class Thumbnail:
         size: int = 0,
         webp: bool = False,
         fallback: bool = True,
-        timeout: float = 3.0
+        timeout: float = 5.0
     ):
         """
         Sends HTTP HEAD requests to get the available thumbnail sizes.

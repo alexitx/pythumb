@@ -79,7 +79,7 @@ def cli():
         '-t',
         '--timeout',
         type=float,
-        default=3.0,
+        default=5.0,
         metavar='<timeout>',
         help='initial connection timeout in seconds; default: %(default)s'
     )
