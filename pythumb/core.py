@@ -3,7 +3,6 @@ import os
 import re
 import requests
 import shutil
-from collections import OrderedDict
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
@@ -57,7 +56,7 @@ class Thumbnail:
             The specified URL is not a valid YouTube video URL
     """
 
-    _id_re = re.compile(r'^[\w-]{11}$')
+    _id_regex = re.compile(r'^[\w-]{11}$')
     _size_regex = re.compile(r'^(maxres|sd|hq|mq|)?(default|1|2|3)$')
     _size_prefixes = ('maxres', 'sd', 'hq', 'mq', '')
 
@@ -134,7 +133,6 @@ class Thumbnail:
                     self.ext = 'webp' if webp else 'jpg'
                     return self.image
 
-            # Don't check lower sizes if fallback is False
             if not fallback:
                 break
 
@@ -220,13 +218,11 @@ class Thumbnail:
             if 'v' in query:
                 id = query['v'][0][:11]
 
-        # Validate ID
-        if not self._id_re.fullmatch(id):
+        if not self._id_regex.fullmatch(id):
             raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL", self._url)
         return id
 
     def _parse_id(self):
-        # Validate ID
-        if not self._id_re.fullmatch(self._id):
+        if not self._id_regex.fullmatch(self._id):
             raise InvalidIDError(f"'{self._id}' is not a valid YouTube video ID", self._id)
         return self._id

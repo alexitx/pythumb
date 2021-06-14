@@ -1,15 +1,12 @@
 import argparse
-import os
 import requests.exceptions
 import shutil
 import sys
-from pathlib import Path
 
 from .core import Thumbnail
 from .exceptions import (
     InvalidIDError,
     InvalidURLError,
-    NotFetchedError,
     NotFoundError
 )
 from ._version import __version__
@@ -91,7 +88,7 @@ def cli():
     args_save.add_argument(
         '-d',
         '--dir',
-        default=os.getcwd(),
+        default='.',
         metavar='<dir>',
         help="output directory; '-' outputs to stdout"
     )
@@ -121,7 +118,7 @@ def cli():
             print(msg)
 
     try:
-        use_id = Thumbnail._id_re.match(args.input)
+        use_id = Thumbnail._id_regex.match(args.input)
         t = Thumbnail(id=args.input) if use_id else Thumbnail(args.input)
     except (InvalidIDError, InvalidURLError):
         error(f"'{args.input}' is not a valid YouTube video URL or ID")
