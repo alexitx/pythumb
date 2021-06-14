@@ -58,17 +58,8 @@ class Thumbnail:
     """
 
     _id_re = re.compile(r'^[\w-]{11}$')
-    _size = OrderedDict([
-        (0, 'maxresdefault'),
-        (1, 'sddefault'),
-        (2, 'hqdefault'),
-        (3, 'mqdefault'),
-        (4, 'default'),
-    ])
-    _format = OrderedDict([
-        (0, ('vi', 'jpg')),
-        (1, ('vi_webp', 'webp'))
-    ])
+    _size_regex = re.compile(r'^(maxres|sd|hq|mq|)?(default|1|2|3)$')
+    _size_prefixes = ('maxres', 'sd', 'hq', 'mq', '')
 
     def __init__(self, url: str = None, id: str = None):
         self._url = url
@@ -83,7 +74,7 @@ class Thumbnail:
 
     def fetch(
         self,
-        size: int = 0,
+        size: str = 'maxresdefault',
         webp: bool = False,
         fallback: bool = True,
         timeout: float = 5.0
@@ -96,8 +87,8 @@ class Thumbnail:
         The image data is cached and returned immediately on future calls.
 
         Args:
-            size (int, optional):
-                Thumbnail size from 0 (largest) to 4 (smallest)
+            size (str, optional):
+                Thumbnail size
             webp (bool, optional):
                 Use WebP instead of JPEG format
             fallback (bool, optional):
@@ -118,17 +109,20 @@ class Thumbnail:
         if self.image:
             return self.image
 
+        match = self._size_regex.match(size)
+        if not match:
+            raise ValueError(f'Invalid thumbnail size: {size}')
+        prefix, suffix = match.groups()
+
         url_template = 'https://i.ytimg.com/{}/{}/{}.{}'
-        fmt = self._format[1] if webp else self._format[0]
-
-        # Loop through all valid sizes
-        for size_id, size_name in self._size.items():
-            # Only attempt to fetch if the current size
-            # is smaller than or equal to the requested size
-            if size > size_id:
-                continue
-
-            url = url_template.format(fmt[0], self.id, size_name, fmt[1])
+        # Start from the requested size for fallback
+        start = self._size_prefixes.index(prefix)
+        for current_prefix in self._size_prefixes[start:]:
+            current_size = f'{current_prefix}{suffix}'
+            if webp:
+                url = url_template.format('vi_webp', self.id, current_size, 'webp')
+            else:
+                url = url_template.format('vi', self.id, current_size, 'jpg')
             # Get response code to verify if the requested size is available
             h = requests.head(url, timeout=timeout, allow_redirects=True)
             if h.ok:
@@ -136,8 +130,8 @@ class Thumbnail:
                 r = requests.get(url, timeout=timeout)
                 if r.ok:
                     self.image = BytesIO(r.content)
-                    self.size = size_name
-                    self.ext = fmt[1]
+                    self.size = current_size
+                    self.ext = 'webp' if webp else 'jpg'
                     return self.image
 
             # Don't check lower sizes if fallback is False
@@ -146,9 +140,9 @@ class Thumbnail:
 
         raise NotFoundError(
             "Failed to find thumbnail for video ID "
-            f"'{self.id}' with size '{self._size[size]}'",
+            f"'{self.id}' with size '{size}'",
             self.id,
-            self._size[size]
+            current_size
         )
 
     def save(

@@ -69,11 +69,10 @@ def cli():
     args_fetch.add_argument(
         '-s',
         '--size',
-        choices=(0, 1, 2, 3, 4),
-        default=0,
-        metavar='{0-4}',
-        type=int,
-        help='thumbnail size from 0 (largest) to 4 (smallest)'
+        default='maxresdefault',
+        metavar='<size>',
+        type=str,
+        help='thumbnail size'
     )
     args_fetch.add_argument(
         '-t',
