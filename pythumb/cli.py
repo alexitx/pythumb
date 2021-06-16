@@ -14,9 +14,8 @@ from ._version import __version__
 
 def cli():
 
-    def error(msg, prefix=True):
-        pfx = 'ERROR: ' if prefix else ''
-        print(pfx + msg, file=sys.stderr)
+    def error(msg):
+        print(msg, file=sys.stderr)
         sys.exit(1)
 
     class CustomHelpFormatter(argparse.HelpFormatter):
@@ -112,9 +111,9 @@ def cli():
     )
     args = parser.parse_args(remaining_args)
 
-    stdout = True if args.dir == '-' else False
-    def printl(msg):
-        if not stdout:
+    output_stdout = True if args.dir == '-' else False
+    def log(msg):
+        if not output_stdout:
             print(msg)
 
     try:
@@ -123,7 +122,7 @@ def cli():
     except (InvalidIDError, InvalidURLError):
         error(f"'{args.input}' is not a valid YouTube video URL or ID")
 
-    printl(f'Requesting thumbnail for video ID: {t.id}')
+    log(f'Requesting thumbnail for video ID: {t.id}')
 
     try:
         t.fetch(
@@ -132,23 +131,12 @@ def cli():
             args.no_fallback,
             args.timeout
         )
-    except NotFoundError as e:
-        error(
-            "Failed to find thumbnail for video ID "
-            f"'{e.args[1]}' with size '{e.args[2]}'"
-        )
-    except requests.exceptions.Timeout as e:
-        error('Connection timed out')
-    except requests.exceptions.SSLError as e:
-        error('SSL error')
-    except requests.exceptions.ConnectionError as e:
-        error('Failed to establish connection')
-    except requests.exceptions.RequestException as e:
+    except (ValueError, NotFoundError, requests.exceptions.RequestException) as e:
         error(f'{type(e).__name__}: {e}')
 
-    printl(f'Found thumbnail with size: {t.size}')
+    log(f'Found thumbnail with size: {t.size}')
 
-    if stdout:
+    if output_stdout:
         try:
             shutil.copyfileobj(t.image, sys.stdout.buffer)
         except OSError as e:
@@ -161,18 +149,10 @@ def cli():
                 args.overwrite,
                 args.no_mkdir
             )
-        except NotADirectoryError as e:
-            error(f'Invalid path: {e.filename}')
-        except FileExistsError as e:
-            error(f'File already exists: {e.filename}')
-        except FileNotFoundError as e:
-            error(f'Specified path does not exist: {e.filename}')
-        except PermissionError as e:
-            error(f'Permission denied: {e.filename}')
         except OSError as e:
             error(f'{type(e).__name__}: {e}')
 
-        printl(f'Successfully saved thumbnail to: {dest}')
+        log(f'Successfully saved thumbnail to: {dest}')
 
 
 def main():
