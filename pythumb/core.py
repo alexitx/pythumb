@@ -181,10 +181,7 @@ class Thumbnail:
         path = Path(dir)
 
         if mkdir:
-            try:
-                path.mkdir(parents=True, exist_ok=True)
-            except FileExistsError:
-                raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
+            path.mkdir(parents=True, exist_ok=True)
 
         dest = path.resolve().joinpath(file)
         if dest.exists() and not overwrite:
