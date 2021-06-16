@@ -117,8 +117,10 @@ def cli():
             print(msg)
 
     try:
-        use_id = Thumbnail._id_regex.match(args.input)
-        t = Thumbnail(id=args.input) if use_id else Thumbnail(args.input)
+        if len(args.input) == 11:
+            t = Thumbnail(id=args.input)
+        else:
+            t = Thumbnail(url=args.input)
     except (InvalidIDError, InvalidURLError):
         error(f"'{args.input}' is not a valid YouTube video URL or ID")
 
