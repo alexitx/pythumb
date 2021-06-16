@@ -215,11 +215,11 @@ class Thumbnail:
             if 'v' in query:
                 id = query['v'][0][:11]
 
-        if not self._id_regex.fullmatch(id):
+        if not self._id_regex.match(id):
             raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL", self._url)
         return id
 
     def _parse_id(self):
-        if not self._id_regex.fullmatch(self._id):
+        if not self._id_regex.match(self._id):
             raise InvalidIDError(f"'{self._id}' is not a valid YouTube video ID", self._id)
         return self._id
