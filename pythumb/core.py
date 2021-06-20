@@ -80,8 +80,6 @@ class Thumbnail:
         Sends HTTP HEAD requests to get the available thumbnail sizes.
         After the desired size is chosen, a GET request is sent to fetch the image.
 
-        The image data is cached and returned immediately on future calls.
-
         Args:
             size (str, optional):
                 Default thumbnail:
@@ -123,9 +121,6 @@ class Thumbnail:
                 Thumbnail with the requested size is not found
                 or the video does not exist
         """
-
-        if self.image:
-            return self.image
 
         match = self._size_regex.match(size)
         if not match:
