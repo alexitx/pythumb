@@ -2,8 +2,6 @@ import errno
 import os
 import re
 import requests
-import shutil
-from io import BytesIO
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -46,8 +44,8 @@ class Thumbnail:
             Name of the requested size
         ext (str):
             Format-dependent file extension
-        image (io.BytesIO):
-            Byte buffer containing the image data
+        image (bytes):
+            The image data as bytes
 
     Raises:
         InvalidIDError:
@@ -67,9 +65,9 @@ class Thumbnail:
             raise ValueError('Must provide video URL or ID')
         # Parse ID first, if not present fall back to URL
         self.id: str = self._parse_id() if self._id else self._parse_url()
+        self.image: bytes = None
         self.size: str = None
         self.ext: str = None
-        self.image: BytesIO = None
 
     def fetch(
         self,
@@ -80,14 +78,35 @@ class Thumbnail:
     ):
         """
         Sends HTTP HEAD requests to get the available thumbnail sizes.
-        After the desired size is chosen, a GET request is sent to fetch the image,
-        which is saved as a byte buffer.
+        After the desired size is chosen, a GET request is sent to fetch the image.
 
         The image data is cached and returned immediately on future calls.
 
         Args:
             size (str, optional):
-                Thumbnail size
+                Default thumbnail:
+                  - maxresdefault
+                  - sddefault
+                  - hqdefault
+                  - mqdefault
+                  - default
+                Auto-generated thumbnails (not always available):
+                  - maxres1
+                  - maxres2
+                  - maxres3
+                  - sd1
+                  - sd2
+                  - sd3
+                  - hq1
+                  - hq2
+                  - hq3
+                  - mq1
+                  - mq2
+                  - mq3
+                  - 1
+                  - 2
+                  - 3
+                Default: 'maxresdefault'
             webp (bool, optional):
                 Use WebP instead of JPEG format
             fallback (bool, optional):
@@ -96,8 +115,8 @@ class Thumbnail:
                 Server response timeout in seconds
 
         Returns:
-            io.BytesIO:
-                Byte buffer containing the image data
+            bytes:
+                The image data as bytes
 
         Raises:
             NotFoundError:
@@ -128,7 +147,7 @@ class Thumbnail:
                 # Fetch the actual image
                 r = requests.get(url, timeout=timeout)
                 if r.ok:
-                    self.image = BytesIO(r.content)
+                    self.image = r.content
                     self.size = current_size
                     self.ext = 'webp' if webp else 'jpg'
                     return self.image
@@ -188,7 +207,7 @@ class Thumbnail:
             raise FileExistsError(errno.EEXIST, os.strerror(errno.EEXIST), str(dest))
 
         with open(dest, 'wb') as f:
-            shutil.copyfileobj(self.image, f)
+            f.write(self.image)
 
         return str(dest)
 
