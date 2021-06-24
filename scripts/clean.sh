@@ -7,10 +7,10 @@ cd "$base_dir"
 
 files=(
     *.egg-info
-    "./build/"
-    "./dist/"
-    "./pyi-build/"
-    "./pyi-dist/"
+    build/
+    dist/
+    pyi-build/
+    pyi-dist/
 )
 
 for f in "${files[@]}"; do

@@ -11,18 +11,17 @@ build() {
     echo "Build finished"
 }
 
-pyi_cmd_base="pyinstaller --distpath ./pyi-dist --workpath ./pyi-build --clean"
-pyi_cmd="$pyi_cmd_base"
+pyi_cmd_base="pyinstaller --distpath pyi-dist --workpath pyi-build -y --clean"
 
 case "$1" in
     win)
         echo "Selected OS: Windows"
-        pyi_cmd="${pyi_cmd} ./build-win.spec"
+        pyi_cmd="${pyi_cmd_base} build-win.spec"
         build
         ;;
     linux)
         echo "Selected OS: Linux"
-        pyi_cmd="${pyi_cmd} ./build-linux.spec"
+        pyi_cmd="${pyi_cmd_base} build-linux.spec"
         build
         ;;
     *)
