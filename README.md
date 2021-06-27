@@ -19,6 +19,7 @@ Requires Python 3.6+
 - [Usage](#usage)
   - [CLI](#cli)
   - [API](#api)
+  - [Thumbnail sizes](#thumbnail-sizes)
 - [License](#license)
 
 ## Installation
@@ -55,12 +56,12 @@ Optionally you can build a standalone executable.
 Prerequisites:
 - [Git Bash][git] (Windows)
 
-On Debian/Ubuntu install python3-dev:
+On Linux install python3-dev:
 ```sh
 $ sudo apt install python3-dev
 ```
 
-Install pyinstaller:
+Install PyInstaller:
 ```sh
 $ python3 -m pip install pyinstaller
 ```
@@ -81,14 +82,14 @@ You can find the executable in `./pyi-dist/`.
 $ pythumb [options] <input>
 ```
 
-To save a thumbnail to the current directory, simply pass the video URL or 11-character ID:
+To save a thumbnail to the current directory, simply pass the video URL or 11-character ID (recommended quoted):
 ```sh
-$ pythumb https://youtu.be/aqz-KE-bpKQ
+$ pythumb "https://youtu.be/aqz-KE-bpKQ"
 # or
-$ pythumb aqz-KE-bpKQ
+$ pythumb "aqz-KE-bpKQ"
 ```
 
-Use `--help` or go to the [wiki][wiki] for more details.
+Use `--help` for more details.
 
 ### API
 
@@ -102,7 +103,35 @@ t.save('.')
 # ./aqz-KE-bpKQ.jpg
 ```
 
-Full details about the API in the [wiki][wiki].
+### Thumbnail sizes
+
+| Name            | Size     |
+|-----------------|----------|
+| `maxresdefault` | 1280x720 |
+| `sddefault`     | 640x480  |
+| `hqdefault`     | 480x360  |
+| `mqdefault`     | 320x180  |
+| `default`       | 120x90   |
+
+#### Auto-generated previews (start, middle and end of the video)
+
+| Name      | Size     |
+|-----------|----------|
+| `maxres1` | 1280x720 |
+| `maxres2` | 1280x720 |
+| `maxres3` | 1280x720 |
+| `sd1`     | 640x480  |
+| `sd2`     | 640x480  |
+| `sd3`     | 640x480  |
+| `hq1`     | 480x360  |
+| `hq2`     | 480x360  |
+| `hq3`     | 480x360  |
+| `mq1`     | 320x180  |
+| `mq2`     | 320x180  |
+| `mq3`     | 320x180  |
+| `1`       | 120x90   |
+| `2`       | 120x90   |
+| `3`       | 120x90   |
 
 ## License
 
