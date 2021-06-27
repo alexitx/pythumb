@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0]
+### Changes
+- Add support for more thumbnail variants
+- Don't raise `NotADirectoryError` from `FileExistsError` on mkdir
+- Simplify exception handling and print more detailed errors in CLI
+- Store image as `bytes` instead of `BytesIO`
+- Disable caching of the image to allow fetching multiple sizes
+- Remove unused exception arguments
+
+### Fixes
+- Reduce Windows executable file size
+
 ## [0.3.0]
 ### Changes
 - Add docstrings and comments
