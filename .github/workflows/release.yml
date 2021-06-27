@@ -25,7 +25,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: python -m pip install -U pip setuptools
+        run: |
+          python -m pip install -U pip
+          python -m pip install -U setuptools wheel
 
       - name: Get version
         id: version
@@ -46,7 +48,6 @@ jobs:
         id: changelog
         uses: mindsers/changelog-reader-action@v2
         with:
-          path: ./CHANGELOG.md
           version: ${{ steps.version.outputs.version }}
 
       - name: Create release
@@ -59,7 +60,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build_win:
+  build_windows:
     name: Build Windows binaries
     needs: prepare
     runs-on: windows-latest
@@ -76,25 +77,26 @@ jobs:
         shell: bash
         run: |
           url="https://github.com/upx/upx/releases/download/v3.96/upx-3.96-win64.zip"
-          archive_name="upx-3.96-win64"
-          archive="${upx_archive_name}.zip"
+          upx_dir="upx-3.96-win64"
+          archive="${upx_dir}.zip"
           install_dir="/c/upx"
 
-          mkdir -p $install_dir
+          mkdir -p "$install_dir"
           temp_dir="$(mktemp -d)"
 
-          curl -LSso ${temp_dir}/$archive "$url"
-          unzip -d $temp_dir ${temp_dir}/$archive
-          mv ${temp_dir}/${archive_name}/* $install_dir
+          curl -LSso "$temp_dir/$archive" "$url"
+          7z x -o"$temp_dir" "$temp_dir/$archive"
+          mv "$temp_dir/$upx_dir"/* "$install_dir"
 
           echo "::set-output name=upx_path::$install_dir"
 
       - name: Install dependencies
         shell: bash
         run: |
-          python -m pip install -U pip setuptools wheel
-          python -m pip install pyinstaller -r requirements.txt
-
+          python -m pip install -U pip
+          python -m pip install -U setuptools wheel
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller==4.3
 
       - name: Build binaries
         id: build
@@ -107,12 +109,10 @@ jobs:
 
           ./scripts/build.sh win
 
-          mkdir -p ./release/${release_name}/
-          cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
+          mkdir -p "release/$release_name/"
+          cp pyi-dist/* LICENSE NOTICE "release/$release_name/"
           cd release/
-
-          7z a -tzip -mx9 ./$archive ${release_name}/
-          sha256sum ./${archive} > ./${archive}.sha256sum
+          7z a -tzip -mx9 "$archive" "$release_name/"
 
           echo "::set-output name=archive::$archive"
 
@@ -120,19 +120,9 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.archive }}
+          asset_path: release/${{ steps.build.outputs.archive }}
           asset_name: ${{ steps.build.outputs.archive }}
           asset_content_type: application/zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload binaries checksum
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.archive }}.sha256sum
-          asset_name: ${{ steps.build.outputs.archive }}.sha256sum
-          asset_content_type: text/plain
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -152,23 +142,25 @@ jobs:
         id: upx
         run: |
           url="https://github.com/upx/upx/releases/download/v3.96/upx-3.96-amd64_linux.tar.xz"
-          archive_name="upx-3.96-amd64_linux"
-          archive="${upx_archive_name}.tar.xz"
-          install_dir=~/.local/lib/upx
+          upx_dir="upx-3.96-amd64_linux"
+          archive="${upx_dir}.tar.xz"
+          install_dir="$HOME/upx"
 
-          mkdir -p $install_dir
+          mkdir -p "$install_dir"
           temp_dir="$(mktemp -d)"
 
-          curl -LSso ${temp_dir}/$archive "$url"
-          tar -xJf ${temp_dir}/$archive -C $temp_dir
-          mv ${temp_dir}/${archive_name}/* $install_dir
+          curl -LSso "$temp_dir/$archive" "$url"
+          tar -xf "$temp_dir/$archive" -C "$temp_dir"
+          mv "$temp_dir/$upx_dir"/* "$install_dir"
 
           echo "::set-output name=upx_path::$install_dir"
 
       - name: Install dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
-          python -m pip install pyinstaller -r requirements.txt
+          python -m pip install -U pip
+          python -m pip install -U setuptools wheel
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller==4.3
 
       - name: Build binaries
         id: build
@@ -178,15 +170,13 @@ jobs:
           release_name="pythumb-${{ needs.prepare.outputs.version }}-linux-x64"
           archive="${release_name}.tar.xz"
 
-          chmod +x ./scripts/*.sh
+          chmod +x scripts/*.sh
           ./scripts/build.sh linux
 
-          mkdir -p ./release/${release_name}/
-          cp ./pyi-dist/* ./LICENSE ./NOTICE ./release/${release_name}/
-          cd ./release/
-
-          tar -cf - ${release_name}/ | xz -zc9 - > ./$archive
-          sha256sum ./${archive} > ./${archive}.sha256sum
+          mkdir -p "release/$release_name/"
+          cp pyi-dist/* LICENSE NOTICE "release/$release_name/"
+          cd release/
+          tar -cf - "$release_name/" | xz -zc9 - > "$archive"
 
           echo "::set-output name=archive::$archive"
 
@@ -194,25 +184,15 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.archive }}
+          asset_path: release/${{ steps.build.outputs.archive }}
           asset_name: ${{ steps.build.outputs.archive }}
           asset_content_type: application/x-xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload binaries checksum
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.archive }}.sha256sum
-          asset_name: ${{ steps.build.outputs.archive }}.sha256sum
-          asset_content_type: text/plain
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   build_dist:
     name: Build Python distribution
-    needs: [prepare, build_win, build_linux]
+    needs: [prepare, build_windows, build_linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -224,7 +204,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
+          python -m pip install -U pip
+          python -m pip install -U setuptools wheel
           python -m pip install -r requirements.txt
 
       - name: Build distribution
@@ -234,35 +215,22 @@ jobs:
 
           python setup.py sdist bdist_wheel
 
-          mkdir -p ./release/wheel/
-          cp ./dist/${wheel} ./release/
-          cd ./release/
-
-          sha256sum ./${wheel} > ./${wheel}.sha256sum
+          mkdir -p release/
+          cp "dist/$wheel" release/
 
           echo "::set-output name=wheel::$wheel"
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}
 
       - name: Upload wheel
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.wheel }}
+          asset_path: release/${{ steps.build.outputs.wheel }}
           asset_name: ${{ steps.build.outputs.wheel }}
           asset_content_type: application/x-wheel+zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload wheel checksum
-        uses: actions/upload-release-asset@v1
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@master
         with:
-          upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ./release/${{ steps.build.outputs.wheel }}.sha256sum
-          asset_name: ${{ steps.build.outputs.wheel }}.sha256sum
-          asset_content_type: text/plain
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.PYPI_TOKEN }}
