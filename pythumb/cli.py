@@ -140,7 +140,8 @@ def cli():
 
     if output_stdout:
         try:
-            shutil.copyfileobj(t.image, sys.stdout.buffer)
+            sys.stdout.buffer.write(t.image)
+            sys.stdout.buffer.flush()
         except OSError as e:
             error(f'{type(e).__name__}: {e}')
     else:
