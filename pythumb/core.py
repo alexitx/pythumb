@@ -212,13 +212,13 @@ class Thumbnail:
             raise InvalidURLError(f"'{self._url}' is not a valid YouTube video URL")
 
         id = ''
-        # Parse ID from embed URL
-        if url.path.startswith('/embed/'):
+        # Parse ID from embedded or shorts URL
+        if url.path.startswith(('/embed/', '/shorts/')):
             id = url.path.split('/')[2][:11]
-        # Parse ID from short URL
+        # Parse ID from shortened 'youtu.be' URL
         elif url.netloc == 'youtu.be':
             id = url.path[1:12]
-        # Parse URL from query
+        # Parse ID from query
         else:
             query = parse_qs(url.query)
             if 'v' in query:
