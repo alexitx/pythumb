@@ -57,6 +57,6 @@ setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'requests>=2.25.0,<3'
+        'requests>=2.27.1,<3'
     ]
 )
