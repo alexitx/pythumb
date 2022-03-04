@@ -7,6 +7,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.10'
+  PYINSTALLER_VERSION: '4.9'
 
 jobs:
   prepare:
@@ -26,8 +27,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -U pip
-          python -m pip install -U setuptools wheel
+          python3 -m pip install -U pip
+          python3 -m pip install -U setuptools wheel
 
       - name: Get version
         id: version
@@ -72,6 +73,35 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install base dependencies
+        shell: bash
+        run: |
+          python -m pip install -U pip
+          python -m pip install -U setuptools wheel
+
+      - name: Install package
+        shell: bash
+        run: python -m pip install .
+
+      - name: Clone PyInstaller repository
+        uses: actions/checkout@v2
+        with:
+          repository: pyinstaller/pyinstaller
+          ref: v${{ env.PYINSTALLER_VERSION }}
+          path: temp/pyinstaller/
+
+      - name: Compile PyInstaller bootloader
+        shell: bash
+        run: |
+          cd temp/pyinstaller/bootloader/
+          python ./waf all
+
+      - name: Install PyInstaller
+        shell: bash
+        run: |
+          cd temp/pyinstaller/
+          python -m pip install .
+
       - name: Install UPX
         id: upx
         shell: bash
@@ -80,23 +110,14 @@ jobs:
           upx_dir="upx-3.96-win64"
           archive="${upx_dir}.zip"
           install_dir="/c/upx"
-
-          mkdir -p "$install_dir"
           temp_dir="$(mktemp -d)"
 
+          mkdir -p "$install_dir"
           curl -LSso "$temp_dir/$archive" "$url"
           7z x -o"$temp_dir" "$temp_dir/$archive"
           mv "$temp_dir/$upx_dir"/* "$install_dir"
 
           echo "::set-output name=upx_path::$install_dir"
-
-      - name: Install dependencies
-        shell: bash
-        run: |
-          python -m pip install -U pip
-          python -m pip install -U setuptools wheel
-          python -m pip install -r requirements.txt
-          python -m pip install pyinstaller==4.3
 
       - name: Build binaries
         id: build
@@ -138,6 +159,14 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install base dependencies
+        run: |
+          python3 -m pip install -U pip
+          python3 -m pip install -U setuptools wheel
+
+      - name: Install package
+        run: python3 -m pip install .
+
       - name: Install UPX
         id: upx
         run: |
@@ -145,22 +174,14 @@ jobs:
           upx_dir="upx-3.96-amd64_linux"
           archive="${upx_dir}.tar.xz"
           install_dir="$HOME/upx"
-
-          mkdir -p "$install_dir"
           temp_dir="$(mktemp -d)"
 
+          mkdir -p "$install_dir"
           curl -LSso "$temp_dir/$archive" "$url"
           tar -xf "$temp_dir/$archive" -C "$temp_dir"
           mv "$temp_dir/$upx_dir"/* "$install_dir"
 
           echo "::set-output name=upx_path::$install_dir"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install -U pip
-          python -m pip install -U setuptools wheel
-          python -m pip install -r requirements.txt
-          python -m pip install pyinstaller==4.3
 
       - name: Build binaries
         id: build
@@ -202,18 +223,21 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
+      - name: Install base dependencies
         run: |
-          python -m pip install -U pip
-          python -m pip install -U setuptools wheel
-          python -m pip install -r requirements.txt
+          python3 -m pip install -U pip
+          python3 -m pip install -U setuptools wheel
+          python3 -m pip install build
+
+      - name: Install package
+        run: python3 -m pip install .
 
       - name: Build distribution
         id: build
         run: |
           wheel="pythumb-${{ needs.prepare.outputs.version }}-py3-none-any.whl"
 
-          python setup.py sdist bdist_wheel
+          python3 setup.py sdist bdist_wheel
 
           mkdir -p release/
           cp "dist/$wheel" release/
