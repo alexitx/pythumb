@@ -138,7 +138,7 @@ t.save('.')
 MIT license. See [LICENSE][license] for more information. 
 
 [shields-version]: https://img.shields.io/github/v/tag/alexitx/pythumb?color=e65c5c&label=version&style=flat-square
-[shields-python]: https://img.shields.io/badge/python-3.6--3.9-2996cc?style=flat-square
+[shields-python]: https://img.shields.io/badge/python-3.6--3.10-2996cc?style=flat-square
 [shields-wheel]: https://img.shields.io/pypi/wheel/pythumb?color=7acc29&style=flat-square
 [shields-license]: https://img.shields.io/github/license/alexitx/pythumb?color=e67a45&style=flat-square
 
