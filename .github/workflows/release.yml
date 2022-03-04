@@ -167,6 +167,9 @@ jobs:
       - name: Install package
         run: python3 -m pip install .
 
+      - name: Install PyInstaller
+        run: python3 -m pip install pyinstaller==${{ env.PYINSTALLER_VERSION }}
+
       - name: Install UPX
         id: upx
         run: |
