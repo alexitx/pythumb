@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0]
+### Added
+- Add support for YouTube Shorts URLs
+
+### Changed
+- Update dependencies
+  - requests 2.25.0 -> 2.27.1
+
+### Fixed
+- Fix AttributeError when output is stdout
+
 ## [1.0.0]
 ### Changes
 - Add support for more thumbnail variants
